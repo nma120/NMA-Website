@@ -67,25 +67,31 @@
 
       <section class="section section-ivory" id="event" aria-labelledby="event-heading">
         <div class="wrap">
-          <p class="eyebrow">This week</p>
           <h2 id="event-heading">Events this week</h2>
           <div id="week-events">
-            <article class="event-grid week-event">
-              <div>
-                <h3>Tuesday, November 3, 2026</h3>
-                <p>NMA Torah Tuesday with Rabbi Bryks</p>
-                <p>8:00 PM – 11:00 PM</p>
-                <p><a class="address-link" href="https://www.google.com/maps/search/?api=1&amp;query=6447%20Dieterle%20Crescent%2C%20Rego%20Park%2C%20NY%2011374" target="_blank" rel="noopener noreferrer">6447 Dieterle Crescent, Rego Park, NY 11374</a></p>
+            <article class="week-event">
+              <div class="event-row">
+                <div class="event-side">
+                  <h3 class="event-date">Tuesday, November 3, 2026</h3>
+                  <div class="event-copy">
+                  <p class="event-title">NMA Torah Tuesday with Rabbi Bryks</p>
+                  <p>8:00 PM – 11:00 PM</p>
+                  <p><a class="address-link" href="https://www.google.com/maps/search/?api=1&amp;query=6447%20Dieterle%20Crescent%2C%20Rego%20Park%2C%20NY%2011374" target="_blank" rel="noopener noreferrer">6447 Dieterle Crescent, Rego Park, NY 11374</a></p>
+                  </div>
+                </div>
+                <figure class="flyer-card event-flyer">
+                <button class="flyer-open" type="button" aria-label="Open the flyer larger">
+                  <img
+                    src="images/flyer-chayei-sara.jpg"
+                    alt="Flyer for Tuesday, November 3, 2026: lecture by Rabbi Bryks on Parasha Chayei Sara."
+                  />
+                </button>
+                <figcaption>Click to enlarge</figcaption>
+                </figure>
                 <div class="event-actions">
                   <a class="btn-donate" href="https://www.zeffy.com/en-US/donation-form/support-nma-torah" target="_blank" rel="noopener noreferrer">Sponsor this event</a>
                 </div>
               </div>
-              <figure class="flyer-card event-flyer">
-                <img
-                  src="images/flyer-chayei-sara.jpg"
-                  alt="Flyer for Tuesday, November 3, 2026: lecture by Rabbi Bryks on Parasha Chayei Sara."
-                />
-              </figure>
             </article>
           </div>
         </div>
@@ -301,6 +307,11 @@
       </div>
     </footer>
 
+    <dialog class="flyer-lightbox" id="flyer-lightbox">
+      <button class="flyer-close" type="button">Close</button>
+      <img alt="" />
+    </dialog>
+
     <script>
       (function () {
         var weekBox = document.getElementById("week-events");
@@ -309,6 +320,29 @@
         var mapQuery = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(place);
         var waIcon =
           '<svg class="wa-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.74.46 3.44 1.34 4.94L2 22l5.39-1.41a10.1 10.1 0 0 0 4.65 1.14h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2zm5.76 14.05c-.24.68-1.4 1.25-1.95 1.33-.5.07-1.13.1-1.82-.11-.42-.13-.95-.3-1.64-.59-2.88-1.24-4.76-4.14-4.9-4.33-.14-.19-1.16-1.54-1.16-2.94s.73-2.08 1-2.37c.24-.27.64-.39.85-.39h.61c.19 0 .45-.07.7.53.27.64.91 2.22.99 2.38.08.16.13.35.03.56-.1.21-.15.34-.3.52-.15.18-.31.4-.44.54-.15.15-.3.31-.13.61.17.3.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.36 1.46.3.15.47.13.65-.08.18-.2.75-.87.95-1.17.2-.3.4-.24.67-.14.27.1 1.73.82 2.03.96.3.15.5.22.57.34.07.13.07.74-.17 1.42z"/></svg>';
+
+        var lightbox = document.getElementById("flyer-lightbox");
+        var lightboxImage = lightbox.querySelector("img");
+        function openFlyer(src, alt) {
+          if (!src) return;
+          lightboxImage.src = src;
+          lightboxImage.alt = alt || "Event flyer";
+          if (lightbox.showModal) lightbox.showModal();
+          else lightbox.setAttribute("open", "");
+        }
+        lightbox.querySelector(".flyer-close").addEventListener("click", function () {
+          lightbox.close();
+        });
+        lightbox.addEventListener("click", function (event) {
+          if (event.target === lightbox) lightbox.close();
+        });
+        document.addEventListener("click", function (event) {
+          var opener = event.target.closest ? event.target.closest(".flyer-open") : null;
+          if (!opener) return;
+          var image = opener.querySelector("img");
+          if (!image) return;
+          openFlyer(image.currentSrc || image.src, image.alt);
+        });
 
         function nyKey(date) {
           return new Intl.DateTimeFormat("en-CA", {
@@ -332,18 +366,67 @@
           return { start: nyKey(sunday), end: nyKey(saturday) };
         }
 
-        function showImage(figure, sources) {
+        function showImage(figure, sources, onReady) {
           if (!sources.length) {
             figure.remove();
+            if (onReady) onReady("");
             return;
           }
           var image = figure.querySelector("img");
           image.addEventListener("error", function () {
             sources.shift();
             if (sources.length) image.src = sources[0];
-            else figure.remove();
+            else {
+              figure.remove();
+              if (onReady) onReady("");
+            }
+          });
+          image.addEventListener("load", function () {
+            if (onReady) onReady(image.currentSrc || image.src);
           });
           image.src = sources[0];
+        }
+
+        function flyerFileName(item, url) {
+          var name = item.filename || "";
+          if (!name && url) {
+            var path = url.split("?")[0].split("/").pop();
+            try {
+              name = decodeURIComponent(path);
+            } catch (error) {
+              name = path;
+            }
+          }
+          name = (name || "nma-flyer").replace(/[\\/:*?"<>|]+/g, "").trim();
+          if (!/\.(jpe?g|png|webp|gif)$/i.test(name)) name += ".jpg";
+          return name;
+        }
+
+        function loadFlyerFile(url, name) {
+          return fetch(url)
+            .then(function (response) {
+              if (!response.ok) throw new Error("miss");
+              return response.blob();
+            })
+            .then(function (blob) {
+              var type = blob.type && blob.type.indexOf("image/") === 0 ? blob.type : "image/jpeg";
+              var fileName = name;
+              if (type.indexOf("png") !== -1) fileName = fileName.replace(/\.\w+$/, ".png");
+              return new File([blob], fileName, { type: type });
+            });
+        }
+
+        function saveFlyer(file) {
+          var url = URL.createObjectURL(file);
+          var link = document.createElement("a");
+          link.href = url;
+          link.download = file.name;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(function () {
+            URL.revokeObjectURL(url);
+          }, 1500);
         }
 
         function renderWeek(events) {
@@ -395,11 +478,16 @@
               }).format(end);
             var where = item.location || place;
             var article = document.createElement("article");
-            article.className = index === 0 ? "event-grid week-event" : "event-grid week-event week-event-compact";
-            var copy = document.createElement("div");
+            article.className = index === 0 ? "week-event" : "week-event week-event-compact";
             var heading = document.createElement("h3");
+            heading.className = "event-date";
             heading.textContent = dateLine;
+            var row = document.createElement("div");
+            row.className = "event-row";
+            var copy = document.createElement("div");
+            copy.className = "event-copy";
             var title = document.createElement("p");
+            title.className = "event-title";
             title.textContent = item.summary;
             var time = document.createElement("p");
             time.textContent = timeLine;
@@ -412,7 +500,7 @@
             address.rel = "noopener noreferrer";
             address.textContent = where;
             var actions = document.createElement("div");
-            actions.className = "event-actions share-row";
+            actions.className = "event-actions";
             var sponsor = document.createElement("a");
             sponsor.className = "btn-donate";
             sponsor.href = "https://www.zeffy.com/en-US/donation-form/support-nma-torah";
@@ -420,43 +508,111 @@
             sponsor.rel = "noopener noreferrer";
             sponsor.textContent = "Sponsor this event";
             var shareText = [item.summary, dateLine, timeLine, where].join("\n");
-            var whatsApp = document.createElement("a");
+            var flyerUrl = "";
+            var flyerFile = null;
+            var whatsApp = document.createElement("button");
+            whatsApp.type = "button";
             whatsApp.className = "btn-whatsapp";
-            whatsApp.href = "https://wa.me/?text=" + encodeURIComponent(shareText);
-            whatsApp.target = "_blank";
-            whatsApp.rel = "noopener noreferrer";
             whatsApp.innerHTML = waIcon + "<span>WhatsApp</span>";
+            var download = document.createElement("button");
+            download.type = "button";
+            download.className = "btn-share";
+            download.textContent = "Download flyer";
+            download.hidden = true;
             var share = document.createElement("button");
             share.type = "button";
             share.className = "btn-share";
             share.textContent = "Share";
             actions.appendChild(sponsor);
             actions.appendChild(whatsApp);
+            actions.appendChild(download);
             actions.appendChild(share);
-            copy.appendChild(heading);
             copy.appendChild(title);
             copy.appendChild(time);
             copy.appendChild(address);
-            copy.appendChild(actions);
-            article.appendChild(copy);
+            var side = document.createElement("div");
+            side.className = "event-side";
+            side.appendChild(heading);
+            side.appendChild(copy);
+            row.appendChild(side);
             var figure = document.createElement("figure");
             figure.className = "flyer-card event-flyer";
+            var opener = document.createElement("button");
+            opener.type = "button";
+            opener.className = "flyer-open";
+            opener.setAttribute("aria-label", "Open the flyer larger");
             var image = document.createElement("img");
             image.alt = "Flyer for " + item.summary + " on " + dateLine + ".";
-            figure.appendChild(image);
-            article.appendChild(figure);
+            opener.appendChild(image);
+            var caption = document.createElement("figcaption");
+            caption.textContent = "Click to enlarge";
+            figure.appendChild(opener);
+            figure.appendChild(caption);
+            row.appendChild(figure);
+            row.appendChild(actions);
+            article.appendChild(row);
             weekBox.appendChild(article);
             var sources = [];
             if (item.filename) sources.push("images/" + encodeURIComponent(item.filename));
             if (item.fileId) sources.push("https://lh3.googleusercontent.com/d/" + item.fileId + "=w1600");
-            showImage(figure, sources);
-            share.addEventListener("click", function () {
-              var payload = { title: item.summary, text: shareText };
-              if (navigator.share) {
-                navigator.share(payload).catch(function () {});
+            function textForWhatsApp() {
+              return flyerUrl ? shareText + "\n" + flyerUrl : shareText;
+            }
+            function openWhatsApp() {
+              window.open(
+                "https://wa.me/?text=" + encodeURIComponent(textForWhatsApp()),
+                "_blank",
+                "noopener"
+              );
+            }
+            function sharePayload(includeFile) {
+              var payload = { title: item.summary, text: includeFile ? shareText : textForWhatsApp() };
+              if (includeFile && flyerFile) payload.files = [flyerFile];
+              return payload;
+            }
+            function canSendFile() {
+              if (!flyerFile || !navigator.canShare) return false;
+              try {
+                return navigator.canShare(sharePayload(true));
+              } catch (error) {
+                return false;
+              }
+            }
+            showImage(figure, sources, function (url) {
+              flyerUrl = url || "";
+              if (!flyerUrl || !window.File) return;
+              loadFlyerFile(flyerUrl, flyerFileName(item, flyerUrl))
+                .then(function (file) {
+                  flyerFile = file;
+                  download.hidden = false;
+                })
+                .catch(function () {
+                  download.hidden = true;
+                });
+            });
+            download.addEventListener("click", function () {
+              if (flyerFile) saveFlyer(flyerFile);
+            });
+            whatsApp.addEventListener("click", function () {
+              if (canSendFile()) {
+                navigator.share(sharePayload(true)).catch(function (error) {
+                  if (error && error.name === "AbortError") return;
+                  openWhatsApp();
+                });
                 return;
               }
-              window.open(whatsApp.href, "_blank", "noopener");
+              openWhatsApp();
+            });
+            share.addEventListener("click", function () {
+              var withFile = canSendFile();
+              if (navigator.share) {
+                navigator.share(sharePayload(withFile)).catch(function (error) {
+                  if (error && error.name === "AbortError") return;
+                  openWhatsApp();
+                });
+                return;
+              }
+              openWhatsApp();
             });
           });
         }
