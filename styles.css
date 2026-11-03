@@ -470,6 +470,64 @@ address {
   margin: 0.3rem 0 0;
 }
 
+.support-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0 0 1.5rem;
+  padding: 1.6rem 1.5rem 1.7rem;
+  border-radius: 16px;
+  background: var(--navy);
+  color: var(--ivory);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  min-height: 9.5rem;
+}
+
+.support-cta-kicker {
+  color: var(--gold);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.support-cta-title {
+  font-family: Palatino, Georgia, serif;
+  font-size: 2.4rem;
+  line-height: 1.1;
+  color: #fffdf8;
+}
+
+.support-cta-note {
+  max-width: 36rem;
+  color: #e6dcc6;
+}
+
+.support-cta:hover,
+.support-cta:focus-visible {
+  background: var(--navy-deep);
+  color: var(--ivory);
+}
+
+.coming-soon {
+  display: inline-block;
+  margin: 0 0 0.55rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--ivory-deep);
+  color: var(--gold-deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.purpose-soon:hover {
+  transform: none;
+}
+
 .channel-link {
   margin: 1.25rem 0 0;
 }
@@ -582,7 +640,8 @@ address {
 .video-card,
 .flyer-card,
 .btn-donate,
-.btn-secondary {
+.btn-secondary,
+.support-cta {
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -621,6 +680,8 @@ address {
 
   .site-nav .btn-donate {
     margin: 0 0 0 0.4rem;
+    padding: 0.55rem 1rem;
+    white-space: nowrap;
   }
 
   .donate-wrap {
