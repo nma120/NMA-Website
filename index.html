@@ -73,21 +73,22 @@
         class="section section-ivory"
         id="event"
         aria-labelledby="event-heading"
-        data-date="Tuesday, October 13, 2026"
-        data-speaker="Bentsion Janashvili"
-        data-topic="The Gift of Memory: A Torah Perspective on Aging and the Mind"
+        data-date="Tuesday, November 3, 2026"
+        data-speaker="Rabbi Bryks"
+        data-topic="Parasha Chayei Sara"
+        data-schedule="Dinner 8:00 PM, lecture 8:30 PM, followed by Arvit."
       >
         <div class="wrap event-grid">
           <div>
-            <p class="eyebrow">Next evening</p>
-            <h2 id="event-heading">Tuesday, October 13, 2026</h2>
+            <p class="eyebrow">Tonight</p>
+            <h2 id="event-heading">Tuesday, November 3, 2026</h2>
             <p>
-              Speaker: Bentsion Janashvili.<br />
-              Topic: The Gift of Memory: A Torah Perspective on Aging and the Mind.
+              Speaker: Rabbi Bryks.<br />
+              Topic: Parasha Chayei Sara.
             </p>
             <ol class="schedule">
               <li><span class="time">8:00 PM</span><span>Dinner</span></li>
-              <li><span class="time">8:30 PM</span><span>Shiur</span></li>
+              <li><span class="time">8:30 PM</span><span>Lecture</span></li>
               <li><span class="time">Then</span><span>Arvit</span></li>
             </ol>
             <div class="event-actions">
@@ -96,8 +97,8 @@
           </div>
           <figure class="flyer-card event-flyer">
             <img
-              src="images/flyer-gift-of-memory.jpg"
-              alt="Flyer for Tuesday, October 13, 2026: The Gift of Memory, A Torah Perspective on Aging and the Mind, with Bentsion Janashvili, 8:30 PM, at 6447 Dieterle Crescent, Rego Park."
+              src="images/flyer-chayei-sara.jpg"
+              alt="Flyer for Tuesday, November 3, 2026: lecture by Rabbi Bryks on Parasha Chayei Sara. Dinner at 8:00 PM, lecture at 8:30 PM, followed by Arvit, at 6447 Dieterle Crescent, Rego Park."
             />
           </figure>
         </div>
@@ -113,6 +114,14 @@
           <div class="card-grid" id="upcoming-cards"></div>
           <h3>Recent evenings</h3>
           <div class="flyer-grid">
+            <article class="flyer-card">
+              <img
+                src="images/flyer-gift-of-memory.jpg"
+                alt="Flyer for Tuesday, October 13, 2026: The Gift of Memory, A Torah Perspective on Aging and the Mind, with Bentsion Janashvili."
+              />
+              <h3>The Gift of Memory</h3>
+              <p>Tuesday, October 13, 2026. With Bentsion Janashvili. Dinner 8:00 PM, shiur 8:30 PM, then Arvit.</p>
+            </article>
             <article class="flyer-card">
               <img
                 src="images/flyer-rabbi-bryks.jpg"
@@ -339,7 +348,9 @@
             speaker +
             ". Topic: " +
             (topic || "[Placeholder: topic]") +
-            ". Dinner 8:00 PM, shiur 8:30 PM, then Arvit.";
+            ". " +
+            (eventSection.getAttribute("data-schedule") ||
+              "Dinner 8:00 PM, shiur 8:30 PM, then Arvit.");
           var link = document.createElement("p");
           var anchor = document.createElement("a");
           anchor.href = "#event";
