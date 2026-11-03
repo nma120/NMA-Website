@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-03T20:00:34Z",
+  "updated": "2026-11-03T20:03:09Z",
   "events": [
     {
       "summary": "NMA Torah Tuesday with Rabbi Bryks",
@@ -8,22 +8,6 @@
       "location": "",
       "filename": "flyer-chayei-sara.jpg",
       "fileId": "1XrKVst017SjsSTpXC3kFQLwHLMGV4xVh"
-    },
-    {
-      "summary": "test event",
-      "start": "2026-11-06T01:00:00Z",
-      "end": "2026-11-06T02:00:00Z",
-      "location": "",
-      "filename": "Screenshot 2026-11-03 131116.png",
-      "fileId": "1MvsF7T302Hbt9TRLwP5qZ4nBbC8GeApN"
-    },
-    {
-      "summary": "test 2",
-      "start": "2026-11-06T20:30:00Z",
-      "end": "2026-11-06T21:30:00Z",
-      "location": "",
-      "filename": "Screenshot 2026-11-03 145138.png",
-      "fileId": "1RqZBjrPu30yGuAWhnd0euC_aIerGGsik"
     }
   ]
 }
