@@ -514,10 +514,15 @@
             share.type = "button";
             share.className = "btn-share";
             share.textContent = "Share";
+            var calendar = document.createElement("button");
+            calendar.type = "button";
+            calendar.className = "btn-share";
+            calendar.textContent = "Add to calendar";
             actions.appendChild(sponsor);
             actions.appendChild(whatsApp);
             actions.appendChild(download);
             actions.appendChild(share);
+            actions.appendChild(calendar);
             copy.appendChild(title);
             copy.appendChild(time);
             copy.appendChild(address);
@@ -549,6 +554,57 @@
             function textForWhatsApp() {
               return flyerUrl ? shareText + "\n" + flyerUrl : shareText;
             }
+            function icsEscape(value) {
+              return String(value)
+                .replace(/\\/g, "\\\\")
+                .replace(/\r\n/g, "\\n")
+                .replace(/\n/g, "\\n")
+                .replace(/,/g, "\\,")
+                .replace(/;/g, "\\;");
+            }
+            function icsWhen(iso) {
+              return String(iso).replace(/[-:]/g, "").replace(/\.\d+/, "");
+            }
+            function addToCalendar() {
+              var description = [
+                timeLine,
+                "The entrance is in the back, down the stairs.",
+                "https://nmatorah.org",
+              ];
+              if (flyerUrl) description.push(flyerUrl);
+              var nowStamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+              var ics = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//NMA Torah Learning Center//EN",
+                "CALSCALE:GREGORIAN",
+                "METHOD:PUBLISH",
+                "BEGIN:VEVENT",
+                "UID:" + icsWhen(item.start) + "@nmatorah.org",
+                "DTSTAMP:" + nowStamp,
+                "DTSTART:" + icsWhen(item.start),
+                "DTEND:" + icsWhen(item.end),
+                "SUMMARY:" + icsEscape(item.summary),
+                "LOCATION:" + icsEscape(where),
+                "DESCRIPTION:" + icsEscape(description.join("\n")),
+                "URL:https://nmatorah.org",
+                "END:VEVENT",
+                "END:VCALENDAR",
+              ].join("\r\n");
+              var file = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+              var url = URL.createObjectURL(file);
+              var link = document.createElement("a");
+              link.href = url;
+              var apple = /iPad|iPhone|iPod/.test(navigator.userAgent);
+              if (!apple) link.download = "nma-event.ics";
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+              setTimeout(function () {
+                URL.revokeObjectURL(url);
+              }, 1000);
+            }
+            calendar.addEventListener("click", addToCalendar);
             function openWhatsApp() {
               window.open(
                 "https://wa.me/?text=" + encodeURIComponent(textForWhatsApp()),
