@@ -879,6 +879,7 @@ address {
 }
 
 .map-frame iframe {
+  display: block;
   width: 100%;
   height: 22rem;
   border: 0;
@@ -1035,8 +1036,19 @@ address {
   }
 
   .visit-grid {
-    grid-template-columns: 1.35fr 1fr;
+    grid-template-columns: 1fr 1fr;
     align-items: start;
+  }
+
+  .visit-photo {
+    height: 22rem;
+  }
+
+  .visit-photo img {
+    height: 100%;
+    aspect-ratio: auto;
+    object-fit: cover;
+    object-position: center;
   }
 
   .split {
