@@ -391,6 +391,31 @@ h3 {
   align-items: flex-start;
 }
 
+.week-event + .week-event {
+  margin-top: 2.5rem;
+}
+
+.share-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.btn-share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--gold-deep);
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .card-grid,
 .video-grid,
 .purpose-grid,

@@ -45,7 +45,7 @@
           <h1 id="home-heading">NMA Torah Learning Center</h1>
           <p class="hero-lead">A beit midrash in Rego Park.</p>
           <div class="hero-actions">
-            <a class="btn-donate" id="join-cta" href="#event">Join us this Tuesday</a>
+            <a class="btn-donate" id="join-cta" href="#event">Join us tonight</a>
             <a class="btn-secondary" href="#shiurim">Watch shiurim</a>
           </div>
           <p class="temp-note">
@@ -68,51 +68,36 @@
         </div>
       </section>
 
-      <!-- Update the next evening in this section only. The card below is copied from it. -->
-      <section
-        class="section section-ivory"
-        id="event"
-        aria-labelledby="event-heading"
-        data-date="Tuesday, November 3, 2026"
-        data-speaker="Rabbi Bryks"
-        data-topic="Parasha Chayei Sara"
-        data-schedule="Dinner 8:00 PM, lecture 8:30 PM, followed by Arvit."
-      >
-        <div class="wrap event-grid">
-          <div>
-            <p class="eyebrow">Tonight</p>
-            <h2 id="event-heading">Tuesday, November 3, 2026</h2>
-            <p>
-              Speaker: Rabbi Bryks.<br />
-              Topic: Parasha Chayei Sara.
-            </p>
-            <ol class="schedule">
-              <li><span class="time">8:00 PM</span><span>Dinner</span></li>
-              <li><span class="time">8:30 PM</span><span>Lecture</span></li>
-              <li><span class="time">Then</span><span>Arvit</span></li>
-            </ol>
-            <div class="event-actions">
-              <a class="btn-donate" href="https://www.zeffy.com/en-US/donation-form/support-nma-torah" target="_blank" rel="noopener noreferrer">Sponsor this event</a>
-            </div>
+      <section class="section section-ivory" id="event" aria-labelledby="event-heading">
+        <div class="wrap">
+          <p class="eyebrow">This week</p>
+          <h2 id="event-heading">Events this week</h2>
+          <div id="week-events">
+            <article class="event-grid week-event">
+              <div>
+                <h3>Tuesday, November 3, 2026</h3>
+                <p>NMA Torah Tuesday with Rabbi Bryks</p>
+                <p>8:00 PM – 11:00 PM</p>
+                <p>6447 Dieterle Crescent, Rego Park, NY 11374</p>
+                <div class="event-actions">
+                  <a class="btn-donate" href="https://www.zeffy.com/en-US/donation-form/support-nma-torah" target="_blank" rel="noopener noreferrer">Sponsor this event</a>
+                </div>
+              </div>
+              <figure class="flyer-card event-flyer">
+                <img
+                  src="images/flyer-chayei-sara.jpg"
+                  alt="Flyer for Tuesday, November 3, 2026: lecture by Rabbi Bryks on Parasha Chayei Sara."
+                />
+              </figure>
+            </article>
           </div>
-          <figure class="flyer-card event-flyer">
-            <img
-              src="images/flyer-chayei-sara.jpg"
-              alt="Flyer for Tuesday, November 3, 2026: lecture by Rabbi Bryks on Parasha Chayei Sara. Dinner at 8:00 PM, lecture at 8:30 PM, followed by Arvit, at 6447 Dieterle Crescent, Rego Park."
-            />
-          </figure>
         </div>
       </section>
 
       <section class="section section-white" id="upcoming" aria-labelledby="upcoming-heading">
         <div class="wrap">
           <p class="eyebrow">Calendar</p>
-          <h2 id="upcoming-heading">Upcoming evenings</h2>
-          <p class="lede">
-            [Placeholder: embedded Google Calendar]. Further weeks will appear here once the shared calendar is connected.
-          </p>
-          <div class="card-grid" id="upcoming-cards"></div>
-          <h3>Recent evenings</h3>
+          <h2 id="upcoming-heading">Recent evenings</h2>
           <div class="flyer-grid">
             <article class="flyer-card">
               <img
@@ -328,38 +313,164 @@
 
     <script>
       (function () {
-        var eventSection = document.getElementById("event");
-        var cards = document.getElementById("upcoming-cards");
+        var weekBox = document.getElementById("week-events");
         var join = document.getElementById("join-cta");
-        if (eventSection && cards) {
-          var date = eventSection.getAttribute("data-date") || "";
-          var speaker = eventSection.getAttribute("data-speaker") || "";
-          var topic = eventSection.getAttribute("data-topic") || "";
-          var day = date.split(",")[0];
-          if (join && day) join.textContent = "Join us this " + day;
+        var place = "6447 Dieterle Crescent, Rego Park, NY 11374";
 
-          var card = document.createElement("article");
-          card.className = "event-card";
-          var title = document.createElement("h3");
-          title.textContent = date;
-          var detail = document.createElement("p");
-          detail.textContent =
-            "Speaker: " +
-            speaker +
-            ". Topic: " +
-            (topic || "[Placeholder: topic]") +
-            ". " +
-            (eventSection.getAttribute("data-schedule") ||
-              "Dinner 8:00 PM, shiur 8:30 PM, then Arvit.");
-          var link = document.createElement("p");
-          var anchor = document.createElement("a");
-          anchor.href = "#event";
-          anchor.textContent = "See this evening";
-          link.appendChild(anchor);
-          card.appendChild(title);
-          card.appendChild(detail);
-          card.appendChild(link);
-          cards.appendChild(card);
+        function nyKey(date) {
+          return new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/New_York",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(date);
+        }
+
+        function thisWeek(now) {
+          var parts = nyKey(now).split("-");
+          var noon = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 17));
+          var names = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+          var day = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/New_York",
+            weekday: "short",
+          }).format(noon);
+          var sunday = new Date(noon.getTime() - names[day] * 86400000);
+          var saturday = new Date(sunday.getTime() + 6 * 86400000);
+          return { start: nyKey(sunday), end: nyKey(saturday) };
+        }
+
+        function showImage(figure, sources) {
+          if (!sources.length) {
+            figure.remove();
+            return;
+          }
+          var image = figure.querySelector("img");
+          image.addEventListener("error", function () {
+            sources.shift();
+            if (sources.length) image.src = sources[0];
+            else figure.remove();
+          });
+          image.src = sources[0];
+        }
+
+        function renderWeek(events) {
+          var now = new Date();
+          var week = thisWeek(now);
+          var showing = events.filter(function (item) {
+            var end = new Date(item.end);
+            var key = nyKey(new Date(item.start));
+            return end > now && key >= week.start && key <= week.end;
+          });
+          if (!showing.length) {
+            weekBox.textContent = "No evening is listed for this week.";
+            return;
+          }
+          weekBox.textContent = "";
+          var next = showing[0];
+          var nextStart = new Date(next.start);
+          if (join) {
+            join.textContent =
+              nyKey(nextStart) === nyKey(now)
+                ? "Join us tonight"
+                : "Join us this " +
+                  new Intl.DateTimeFormat("en-US", {
+                    timeZone: "America/New_York",
+                    weekday: "long",
+                  }).format(nextStart);
+          }
+          showing.forEach(function (item) {
+            var start = new Date(item.start);
+            var end = new Date(item.end);
+            var dateLine = new Intl.DateTimeFormat("en-US", {
+              timeZone: "America/New_York",
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            }).format(start);
+            var timeLine =
+              new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/New_York",
+                hour: "numeric",
+                minute: "2-digit",
+              }).format(start) +
+              " – " +
+              new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/New_York",
+                hour: "numeric",
+                minute: "2-digit",
+              }).format(end);
+            var where = item.location || place;
+            var article = document.createElement("article");
+            article.className = "event-grid week-event";
+            var copy = document.createElement("div");
+            var heading = document.createElement("h3");
+            heading.textContent = dateLine;
+            var title = document.createElement("p");
+            title.textContent = item.summary;
+            var time = document.createElement("p");
+            time.textContent = timeLine;
+            var address = document.createElement("p");
+            address.textContent = where;
+            var actions = document.createElement("div");
+            actions.className = "event-actions share-row";
+            var sponsor = document.createElement("a");
+            sponsor.className = "btn-donate";
+            sponsor.href = "https://www.zeffy.com/en-US/donation-form/support-nma-torah";
+            sponsor.target = "_blank";
+            sponsor.rel = "noopener noreferrer";
+            sponsor.textContent = "Sponsor this event";
+            var shareText = [item.summary, dateLine, timeLine, where].join("\n");
+            var whatsApp = document.createElement("a");
+            whatsApp.className = "btn-share";
+            whatsApp.href = "https://wa.me/?text=" + encodeURIComponent(shareText);
+            whatsApp.target = "_blank";
+            whatsApp.rel = "noopener noreferrer";
+            whatsApp.textContent = "WhatsApp";
+            var share = document.createElement("button");
+            share.type = "button";
+            share.className = "btn-share";
+            share.textContent = "Share";
+            actions.appendChild(sponsor);
+            actions.appendChild(whatsApp);
+            actions.appendChild(share);
+            copy.appendChild(heading);
+            copy.appendChild(title);
+            copy.appendChild(time);
+            copy.appendChild(address);
+            copy.appendChild(actions);
+            article.appendChild(copy);
+            var figure = document.createElement("figure");
+            figure.className = "flyer-card event-flyer";
+            var image = document.createElement("img");
+            image.alt = "Flyer for " + item.summary + " on " + dateLine + ".";
+            figure.appendChild(image);
+            article.appendChild(figure);
+            weekBox.appendChild(article);
+            var sources = [];
+            if (item.filename) sources.push("images/" + encodeURIComponent(item.filename));
+            if (item.fileId) sources.push("https://lh3.googleusercontent.com/d/" + item.fileId + "=w1600");
+            showImage(figure, sources);
+            share.addEventListener("click", function () {
+              var payload = { title: item.summary, text: shareText };
+              if (navigator.share) {
+                navigator.share(payload).catch(function () {});
+                return;
+              }
+              window.open(whatsApp.href, "_blank", "noopener");
+            });
+          });
+        }
+
+        if (weekBox && window.fetch) {
+          fetch("data/events.json", { cache: "no-store" })
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (data) {
+              if (data && data.events) renderWeek(data.events);
+            })
+            .catch(function () {});
         }
 
         var grid = document.getElementById("video-grid");
