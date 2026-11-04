@@ -121,7 +121,7 @@ def gift_kind(payment):
 
 def sponsorship_from(payment):
     kind = gift_kind(payment)
-    if not kind:
+    if kind != "shiur" and kind != "meal":
         return None
     answers = pairs(payment)
     evening = None
@@ -146,8 +146,6 @@ def sponsorship_from(payment):
         return None
     if kind == "meal":
         line = "Meal sponsored by " + name
-    elif kind == "liquid":
-        line = "Liquid Asset sponsored by " + name
     else:
         line = "Sponsored by " + name
     return {"date": evening, "kind": kind, "line": line, "paymentId": str(payment.get("id") or "")}

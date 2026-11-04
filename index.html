@@ -194,10 +194,10 @@
             <article class="purpose-card purpose-soon">
               <p class="coming-soon">Coming soon</p>
               <h3>Liquid Asset</h3>
-              <p>Sponsor the alcohol for one evening. One sponsor, and the name is shown on that evening.</p>
+              <p>A donation for the alcohol. The link stays open, and it is not shown on the evening.</p>
             </article>
           </div>
-          <p class="fine-print">Sponsor a shiur is open. A meal and Liquid Asset will each have their own form. Support NMA is open now.</p>
+          <p class="fine-print">Sponsor a shiur is open. A meal will have its own form, and each name is added to the calendar. Liquid Asset is a donation for the alcohol. Support NMA is open now.</p>
         </div>
       </section>
 
@@ -495,7 +495,6 @@
             var shareText = [item.summary, dateLine, timeLine, where];
             if (item.sponsor) shareText.push(item.sponsor);
             (item.meals || []).forEach(function (line) { shareText.push(line); });
-            if (item.liquid) shareText.push(item.liquid);
             shareText = shareText.join("\n");
             var flyerUrl = "";
             var flyerFile = null;
@@ -525,7 +524,6 @@
             if (item.sponsor) addSponsorLine(item.sponsor);
             else actions.appendChild(sponsor);
             (item.meals || []).forEach(addSponsorLine);
-            if (item.liquid) addSponsorLine(item.liquid);
             actions.appendChild(whatsApp);
             actions.appendChild(download);
             actions.appendChild(share);
@@ -578,7 +576,7 @@
                 "The entrance is in the back, down the stairs.",
                 "https://nmatorah.org",
               ];
-              [item.liquid].concat(item.meals || []).concat([item.sponsor]).forEach(function (line) {
+              (item.meals || []).concat([item.sponsor]).forEach(function (line) {
                 if (line) description.unshift(line);
               });
               if (flyerUrl) description.push(flyerUrl);
