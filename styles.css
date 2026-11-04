@@ -761,6 +761,12 @@ address {
   padding: 0.8rem 0.75rem 0.9rem;
 }
 
+a.purpose-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
 .event-card h3,
 .purpose-card h3 {
   color: var(--navy);
