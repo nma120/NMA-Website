@@ -349,6 +349,8 @@ def main():
     print("Payments read:", len(found))
     gifts = []
     for payment in found:
+        campaign_id, title, form, blob = campaign_text(payment)
+        print("Payment", str(payment.get("status") or ""), gift_kind(payment) or "unmatched", title or form or "no campaign title")
         status = str(payment.get("status") or "succeeded").lower()
         if status not in ("succeeded", "success", "paid", "completed"):
             continue
