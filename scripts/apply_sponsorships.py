@@ -310,7 +310,7 @@ def reminder():
 
 def create_private_event(token, gift):
     start = datetime(gift["date"].year, gift["date"].month, gift["date"].day, 20, 0, tzinfo=TIMEZONE)
-    end = start.replace(hour=23)
+    end = start.replace(hour=22)
     event = {
         "summary": "NMA Torah Tuesday",
         "description": gift["line"] + ".\n" + ENTRANCE,
@@ -355,6 +355,35 @@ def add_sponsor_line(token, item, gift):
     )
 
 
+def ends_at_eleven(item):
+    raw = ((item.get("end") or {}).get("dateTime")) or ""
+    if not raw:
+        return False
+    when = datetime.fromisoformat(raw)
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=TIMEZONE)
+    local = when.astimezone(TIMEZONE)
+    return local.hour == 23 and local.minute == 0
+
+
+def set_ten_pm(token, item):
+    raw = item["end"]["dateTime"]
+    when = datetime.fromisoformat(raw)
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=TIMEZONE)
+    local = when.astimezone(TIMEZONE).replace(hour=22, minute=0, second=0, microsecond=0)
+    calendar = urllib.parse.quote(CALENDAR_ID, safe="")
+    return request_json(
+        "https://www.googleapis.com/calendar/v3/calendars/"
+        + calendar
+        + "/events/"
+        + urllib.parse.quote(item["id"], safe=""),
+        method="PATCH",
+        payload={"end": {"dateTime": local.isoformat(), "timeZone": "America/New_York"}},
+        headers=calendar_headers(token),
+    )
+
+
 def apply_gift(token, gift):
     existing = events_on(token, gift["date"])
     ours = [
@@ -364,7 +393,11 @@ def apply_gift(token, gift):
     ]
     recorded = already_recorded(ours or existing, gift)
     if recorded:
-        print("Already recorded:", gift["date"].isoformat(), gift["line"])
+        if (recorded.get("visibility") or "") == "private" and ends_at_eleven(recorded):
+            set_ten_pm(token, recorded)
+            print("Set the evening to 8:00–10:00 PM:", gift["date"].isoformat())
+        else:
+            print("Already recorded:", gift["date"].isoformat(), gift["line"])
         return
     if ours:
         add_sponsor_line(token, ours[0], gift)
