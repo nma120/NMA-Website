@@ -83,7 +83,7 @@
                 <figcaption>Click to enlarge</figcaption>
                 </figure>
                 <div class="event-actions">
-                  <a class="btn-donate" href="https://www.zeffy.com/en-US/donation-form/sponsoring-nma-torah-tuesday" target="_blank" rel="noopener noreferrer">Sponsor this event</a>
+                  <a class="btn-donate" href="https://www.zeffy.com/en-US/donation-form/sponsoring-nma-torah-tuesday" target="_blank" rel="noopener noreferrer">Sponsor this shiur</a>
                 </div>
               </div>
             </article>
@@ -189,20 +189,15 @@
             <article class="purpose-card purpose-soon">
               <p class="coming-soon">Coming soon</p>
               <h3>Sponsor a meal</h3>
-              <p>The sponsor's name is shown on that evening.</p>
+              <p>Sponsor the food for one evening. Each name is added to the calendar, and the link stays open.</p>
             </article>
             <article class="purpose-card purpose-soon">
               <p class="coming-soon">Coming soon</p>
-              <h3>In honor of</h3>
-              <p>Name the person being honored. An optional notice can be sent to them.</p>
-            </article>
-            <article class="purpose-card purpose-soon">
-              <p class="coming-soon">Coming soon</p>
-              <h3>In memory of</h3>
-              <p>L'iluy nishmat. Name of the departed, and an optional azkara date.</p>
+              <h3>Liquid Asset</h3>
+              <p>Sponsor the alcohol for one evening. One sponsor, and the name is shown on that evening.</p>
             </article>
           </div>
-          <p class="fine-print">Sponsor a shiur is open. The other gifts will each have their own form. Support NMA is open now.</p>
+          <p class="fine-print">Sponsor a shiur is open. A meal and Liquid Asset will each have their own form. Support NMA is open now.</p>
         </div>
       </section>
 
@@ -496,9 +491,11 @@
             sponsor.href = "https://www.zeffy.com/en-US/donation-form/sponsoring-nma-torah-tuesday";
             sponsor.target = "_blank";
             sponsor.rel = "noopener noreferrer";
-            sponsor.textContent = "Sponsor this event";
+            sponsor.textContent = "Sponsor this shiur";
             var shareText = [item.summary, dateLine, timeLine, where];
             if (item.sponsor) shareText.push(item.sponsor);
+            (item.meals || []).forEach(function (line) { shareText.push(line); });
+            if (item.liquid) shareText.push(item.liquid);
             shareText = shareText.join("\n");
             var flyerUrl = "";
             var flyerFile = null;
@@ -519,14 +516,16 @@
             calendar.type = "button";
             calendar.className = "btn-share";
             calendar.textContent = "Add to calendar";
-            if (item.sponsor) {
+            function addSponsorLine(text) {
               var sponsored = document.createElement("p");
               sponsored.className = "sponsor-line";
-              sponsored.textContent = item.sponsor;
+              sponsored.textContent = text;
               actions.appendChild(sponsored);
-            } else {
-              actions.appendChild(sponsor);
             }
+            if (item.sponsor) addSponsorLine(item.sponsor);
+            else actions.appendChild(sponsor);
+            (item.meals || []).forEach(addSponsorLine);
+            if (item.liquid) addSponsorLine(item.liquid);
             actions.appendChild(whatsApp);
             actions.appendChild(download);
             actions.appendChild(share);
@@ -579,7 +578,9 @@
                 "The entrance is in the back, down the stairs.",
                 "https://nmatorah.org",
               ];
-              if (item.sponsor) description.unshift(item.sponsor);
+              [item.liquid].concat(item.meals || []).concat([item.sponsor]).forEach(function (line) {
+                if (line) description.unshift(line);
+              });
               if (flyerUrl) description.push(flyerUrl);
               var nowStamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
               var ics = [

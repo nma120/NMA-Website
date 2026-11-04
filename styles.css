@@ -1096,7 +1096,10 @@ a.purpose-card {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .purpose-grid,
+  .purpose-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   .flyer-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -1113,7 +1116,7 @@ a.purpose-card {
 
 @media (min-width: 1040px) {
   .purpose-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

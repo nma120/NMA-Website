@@ -92,22 +92,40 @@ def parse_date(text):
     return None
 
 
-def dedication_from(text):
-    honor = re.search(r"in honor of\s+(.+)", text, re.I)
-    if honor:
-        return "honor", honor.group(1).strip(" .")
-    memory = re.search(r"in memory of\s+(.+)", text, re.I)
-    if memory:
-        return "memory", memory.group(1).strip(" .")
-    return "", ""
+def campaign_text(payment):
+    campaign = payment.get("campaign") or {}
+    title = ""
+    campaign_id = ""
+    if isinstance(campaign, dict):
+        campaign_id = str(campaign.get("id") or "")
+        title = str(campaign.get("title") or campaign.get("name") or "")
+    else:
+        campaign_id = str(campaign)
+    form = str(payment.get("form") or payment.get("form_name") or payment.get("campaign_name") or "")
+    return campaign_id, title, form, (title + " " + form).lower()
+
+
+def gift_kind(payment):
+    campaign_id, title, form, blob = campaign_text(payment)
+    wanted = os.environ.get("ZEFFY_CAMPAIGN_ID", "").strip()
+    if wanted and wanted not in (campaign_id, title, form):
+        return ""
+    if "liquid" in blob or "alcohol" in blob:
+        return "liquid"
+    if "meal" in blob or "food" in blob:
+        return "meal"
+    if "tuesday" in blob or "shiur" in blob or "sponsor" in blob:
+        return "shiur"
+    return ""
 
 
 def sponsorship_from(payment):
+    kind = gift_kind(payment)
+    if not kind:
+        return None
     answers = pairs(payment)
     evening = None
     name = ""
-    kind = ""
-    honored = ""
     for question, answer in answers:
         found = parse_date(answer) or parse_date(question)
         if found and evening is None:
@@ -115,17 +133,6 @@ def sponsorship_from(payment):
         label = question.lower()
         if re.search(r"name|sponsor|display", label) and not parse_date(answer):
             name = answer.strip(" .")
-        if re.search(r"honor|memory|dedicat|nishmat|azkara", label):
-            parsed_kind, parsed_name = dedication_from(answer)
-            if parsed_kind:
-                kind, honored = parsed_kind, parsed_name
-            elif answer and not kind:
-                kind = "memory" if re.search(r"memory|nishmat|azkara", label) else "honor"
-                honored = answer.strip(" .")
-        if not kind:
-            parsed_kind, parsed_name = dedication_from(answer)
-            if parsed_kind:
-                kind, honored = parsed_kind, parsed_name
     contact = payment.get("contact") or payment.get("buyer") or payment.get("user") or {}
     if not name and isinstance(contact, dict):
         name = " ".join(
@@ -137,30 +144,17 @@ def sponsorship_from(payment):
             name = str(contact.get("name") or "").strip()
     if not name or evening is None:
         return None
-    if kind == "honor" and honored:
-        line = "Sponsored by " + name + " in honor of " + honored
-    elif kind == "memory" and honored:
-        line = "Sponsored by " + name + " in memory of " + honored
+    if kind == "meal":
+        line = "Meal sponsored by " + name
+    elif kind == "liquid":
+        line = "Liquid Asset sponsored by " + name
     else:
         line = "Sponsored by " + name
-    return {"date": evening, "line": line, "paymentId": str(payment.get("id") or "")}
+    return {"date": evening, "kind": kind, "line": line, "paymentId": str(payment.get("id") or "")}
 
 
 def campaign_ok(payment):
-    wanted = os.environ.get("ZEFFY_CAMPAIGN_ID", "").strip()
-    campaign = payment.get("campaign") or {}
-    campaign_id = ""
-    title = ""
-    if isinstance(campaign, dict):
-        campaign_id = str(campaign.get("id") or "")
-        title = str(campaign.get("title") or campaign.get("name") or "")
-    else:
-        campaign_id = str(campaign)
-    form = str(payment.get("form") or payment.get("form_name") or payment.get("campaign_name") or "")
-    if wanted:
-        return wanted in (campaign_id, title, form)
-    blob = (title + " " + form).lower()
-    return "tuesday" in blob or "sponsor" in blob
+    return bool(gift_kind(payment))
 
 
 def payments(token):
@@ -208,16 +202,34 @@ def events_on(token, evening):
     return listed.get("items") or []
 
 
-def already_recorded(items, payment_id, line):
+def recorded_ids(item):
+    private = ((item.get("extendedProperties") or {}).get("private") or {})
+    raw = private.get("zeffyPaymentIds") or private.get("zeffyPaymentId") or ""
+    return set(str(raw).split())
+
+
+def line_kind(text):
+    low = text.strip().lower()
+    if low.startswith("meal sponsored by"):
+        return "meal"
+    if low.startswith("liquid asset sponsored by"):
+        return "liquid"
+    if low.startswith("sponsored by"):
+        return "shiur"
+    return ""
+
+
+def already_recorded(items, gift):
     for item in items:
-        private = ((item.get("extendedProperties") or {}).get("private") or {})
-        if payment_id and private.get("zeffyPaymentId") == payment_id:
+        if gift["paymentId"] and gift["paymentId"] in recorded_ids(item):
             return item
         description = item.get("description") or ""
-        if line and line in description:
+        if gift["line"] and gift["line"] in description:
             return item
-        if "sponsored by" in description.lower():
-            return item
+        if gift["kind"] != "meal":
+            for note in description.splitlines():
+                if line_kind(note) == gift["kind"]:
+                    return item
     return None
 
 
@@ -242,7 +254,7 @@ def create_private_event(token, gift):
         "end": {"dateTime": end.isoformat(), "timeZone": "America/New_York"},
         "visibility": "private",
         "reminders": reminder(),
-        "extendedProperties": {"private": {"zeffyPaymentId": gift["paymentId"]}},
+        "extendedProperties": {"private": {"zeffyPaymentIds": gift["paymentId"]}},
     }
     calendar = urllib.parse.quote(CALENDAR_ID, safe="")
     return request_json(
@@ -258,7 +270,10 @@ def add_sponsor_line(token, item, gift):
     if gift["line"] not in description:
         description = (gift["line"] + ".\n" + description).strip()
     private = ((item.get("extendedProperties") or {}).get("private") or {})
-    private["zeffyPaymentId"] = gift["paymentId"]
+    ids = recorded_ids(item)
+    if gift["paymentId"]:
+        ids.add(gift["paymentId"])
+    private["zeffyPaymentIds"] = " ".join(sorted(ids))
     patch = {
         "description": description,
         "extendedProperties": {"private": private},
@@ -282,7 +297,7 @@ def apply_gift(token, gift):
         for item in existing
         if "nma" in (item.get("summary") or "").lower() or "torah" in (item.get("summary") or "").lower()
     ]
-    recorded = already_recorded(ours or existing, gift["paymentId"], gift["line"])
+    recorded = already_recorded(ours or existing, gift)
     if recorded:
         print("Already recorded:", gift["date"].isoformat(), gift["line"])
         return
@@ -311,14 +326,16 @@ def main():
         gift = sponsorship_from(payment)
         if gift:
             gifts.append(gift)
-    gifts.sort(key=lambda item: (item["date"], item["paymentId"]))
+    gifts.sort(key=lambda item: (item["date"], item["kind"], item["paymentId"]))
     seen = set()
     for gift in gifts:
-        if gift["date"] in seen:
-            print("A sponsor is already recorded for", gift["date"].isoformat())
+        key = (gift["date"], gift["kind"])
+        if gift["kind"] != "meal" and key in seen:
+            print("A sponsor is already recorded for", gift["date"].isoformat(), gift["kind"])
             continue
         apply_gift(token, gift)
-        seen.add(gift["date"])
+        if gift["kind"] != "meal":
+            seen.add(key)
 
 
 if __name__ == "__main__":

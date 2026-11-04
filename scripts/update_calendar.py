@@ -40,12 +40,21 @@ def field(body, name):
     return unescape(match.group(1)) if match else ""
 
 
-def sponsor_line(description):
+def sponsorship_notes(description):
+    shiur = ""
+    meals = []
+    liquid = ""
     for line in description.splitlines():
         text = line.strip().rstrip(".")
-        if text.lower().startswith("sponsored by"):
-            return text
-    return ""
+        low = text.lower()
+        if low.startswith("meal sponsored by"):
+            meals.append(text)
+        elif low.startswith("liquid asset sponsored by"):
+            if not liquid:
+                liquid = text
+        elif low.startswith("sponsored by") and not shiur:
+            shiur = text
+    return shiur, meals, liquid
 
 
 def attachment(body):
@@ -82,6 +91,7 @@ def events_from_ics(text):
         if not summary or summary.lower() == "busy":
             continue
         filename, file_id = attachment(body)
+        shiur, meals, liquid = sponsorship_notes(field(body, "DESCRIPTION"))
         found.append(
             {
                 "summary": summary,
@@ -90,7 +100,9 @@ def events_from_ics(text):
                 "location": field(body, "LOCATION"),
                 "filename": filename,
                 "fileId": file_id,
-                "sponsor": sponsor_line(field(body, "DESCRIPTION")),
+                "sponsor": shiur,
+                "meals": meals,
+                "liquid": liquid,
             }
         )
     found.sort(key=lambda item: item["start"])
