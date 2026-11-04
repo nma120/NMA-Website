@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <a class="skip" href="#event">Skip to the next evening</a>
+    <a class="skip" href="#event">Skip to events this week</a>
     <header class="site-header">
       <div class="header-inner">
         <a class="brand" href="#top">
@@ -43,14 +43,13 @@
           <p class="hero-lead">A beit midrash in Rego Park.</p>
           <div class="hero-actions">
             <a class="btn-donate" id="join-cta" href="#event">Join us tonight</a>
-            <a class="btn-secondary" href="#shiurim">Watch shiurim</a>
+            <a class="btn-secondary" href="#shiurim">Shiurim</a>
           </div>
         </div>
       </section>
 
       <section class="section section-white" id="purpose" aria-labelledby="purpose-heading">
         <div class="wrap blurb">
-          <p class="eyebrow">Our purpose</p>
           <h2 id="purpose-heading">Who we are</h2>
           <p>
             NMA Torah Learning Center is a beit midrash in Rego Park, Queens.
@@ -63,38 +62,14 @@
         <div class="wrap">
           <h2 id="event-heading">Events this week</h2>
           <div id="week-events">
-            <article class="week-event">
-              <div class="event-row">
-                <div class="event-side">
-                  <h3 class="event-date">Tuesday, November 3, 2026</h3>
-                  <div class="event-copy">
-                  <p class="event-title">NMA Torah Tuesday with Rabbi Bryks</p>
-                  <p>8:00 PM – 11:00 PM</p>
-                  <p><a class="address-link" href="https://www.google.com/maps/search/?api=1&amp;query=6447%20Dieterle%20Crescent%2C%20Rego%20Park%2C%20NY%2011374" target="_blank" rel="noopener noreferrer">6447 Dieterle Crescent, Rego Park, NY 11374</a></p>
-                  </div>
-                </div>
-                <figure class="flyer-card event-flyer">
-                <button class="flyer-open" type="button" aria-label="Open the flyer larger">
-                  <img
-                    src="images/flyer-chayei-sara.jpg"
-                    alt="Flyer for Tuesday, November 3, 2026: lecture by Rabbi Bryks on Parasha Chayei Sara."
-                  />
-                </button>
-                <figcaption>Click to enlarge</figcaption>
-                </figure>
-                <div class="event-actions">
-                  <a class="btn-donate" href="https://www.zeffy.com/en-US/donation-form/sponsoring-nma-torah-tuesday" target="_blank" rel="noopener noreferrer">Sponsor this shiur</a>
-                </div>
-              </div>
-            </article>
+            <p class="week-empty">No events are scheduled for this week. Please check back soon.</p>
           </div>
         </div>
       </section>
 
       <section class="section section-white" id="upcoming" aria-labelledby="upcoming-heading">
         <div class="wrap">
-          <p class="eyebrow">Calendar</p>
-          <h2 id="upcoming-heading">Recent evenings</h2>
+          <h2 id="upcoming-heading">Recent Events</h2>
           <div class="flyer-grid">
             <article class="flyer-card">
               <img
@@ -128,8 +103,7 @@
 
       <section class="section section-navy" id="shiurim" aria-labelledby="shiurim-heading">
         <div class="wrap">
-          <p class="eyebrow">Watch</p>
-          <h2 id="shiurim-heading">Recent shiurim</h2>
+          <h2 id="shiurim-heading">Shiurim</h2>
           <p class="lede">Latest recordings from our channel. Titles are shown as published. Speaker names are not listed on the videos, so they are not added here.</p>
           <div class="video-grid" id="video-grid">
             <a class="video-card" href="https://www.youtube.com/watch?v=BdvxT1IvJfc" target="_blank" rel="noopener noreferrer">
@@ -164,15 +138,17 @@
             </a>
           </div>
           <p class="channel-link">
-            <a href="https://www.youtube.com/@nmalearningcenter" target="_blank" rel="noopener noreferrer">Watch more on YouTube: @nmalearningcenter</a>
+            <a href="https://www.youtube.com/@nmalearningcenter" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF0033" d="M23.5 6.2a3 3 0 0 0-2.1-2.2C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 32 32 0 0 0 0 12a32 32 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.2c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.2A32 32 0 0 0 24 12a32 32 0 0 0-.5-5.8z"/><path fill="#fff" d="M9.75 15.02V8.98L15.5 12z"/></svg>
+              <span>Find more and follow us on YouTube</span>
+            </a>
           </p>
         </div>
       </section>
 
       <section class="section section-ivory" id="donate" aria-labelledby="donate-heading">
         <div class="wrap">
-          <p class="eyebrow">Give</p>
-          <h2 id="donate-heading">Sponsor and donate</h2>
+          <h2 id="donate-heading">Donate</h2>
           <p class="lede">
             NMA Torah Learning Center is a 501(c)(3) charity. Donations stay open every day, including Shabbat and Yom Tov.
           </p>
@@ -421,7 +397,11 @@
             return end > now && key >= week.start && key <= week.end;
           });
           if (!showing.length) {
-            weekBox.textContent = "No evening is listed for this week.";
+            weekBox.innerHTML = "";
+            var empty = document.createElement("p");
+            empty.className = "week-empty";
+            empty.textContent = "No events are scheduled for this week. Please check back soon.";
+            weekBox.appendChild(empty);
             return;
           }
           weekBox.textContent = "";
