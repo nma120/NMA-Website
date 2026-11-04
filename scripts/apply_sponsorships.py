@@ -168,9 +168,9 @@ def sponsorship_from(payment, titles):
         label = question.lower()
         if re.search(r"name|sponsor|display", label) and not parse_date(answer):
             name = answer.strip(" .")
-    contact = payment.get("contact") or payment.get("buyer") or payment.get("user") or {}
-    if not isinstance(contact, dict):
-        contact = {}
+    contact = payment.get("buyer") if isinstance(payment.get("buyer"), dict) else {}
+    if not contact and isinstance(payment.get("contact"), dict):
+        contact = payment.get("contact")
     if not name:
         name = " ".join(
             part
@@ -184,7 +184,14 @@ def sponsorship_from(payment, titles):
             name = str(contact.get("name") or "").strip()
     if not name or evening is None:
         return None
-    tribute = payment.get("tribute") if isinstance(payment.get("tribute"), dict) else {}
+    tribute = {}
+    if isinstance(payment.get("tribute"), dict):
+        tribute = payment.get("tribute")
+    for item in payment.get("items") or []:
+        if tribute:
+            break
+        if isinstance(item, dict) and isinstance(item.get("tribute"), dict):
+            tribute = item.get("tribute")
     honored = str(tribute.get("honouree_name") or tribute.get("honoree_name") or tribute.get("name") or "").strip(" .")
     tribute_type = str(tribute.get("type") or tribute.get("kind") or "").lower()
     dedication = ""
@@ -203,20 +210,8 @@ def sponsorship_from(payment, titles):
     return {"date": evening, "kind": kind, "line": line, "paymentId": str(payment.get("id") or ""), "created": created}
 
 
-def key_paths(value, prefix=""):
-    lines = []
-    if isinstance(value, dict):
-        for key in sorted(value):
-            path = prefix + str(key)
-            child = value[key]
-            if isinstance(child, (dict, list)):
-                lines.append(path)
-                lines.extend(key_paths(child, path + "."))
-            else:
-                lines.append(path)
-    elif isinstance(value, list) and value:
-        lines.extend(key_paths(value[0], prefix + "[]."))
-    return lines
+def campaign_ok(payment, titles):
+    return bool(gift_kind(payment, titles))
 
 
 def paged(token, resource):
@@ -395,17 +390,13 @@ def main():
         status = str(payment.get("status") or "succeeded").lower()
         if status not in ("succeeded", "success", "paid", "completed"):
             continue
-        campaign_id, title, form, blob = campaign_text(payment, titles)
-        kind = gift_kind(payment, titles)
-        if not kind:
-            print("Unmatched", title or campaign_id or "no campaign")
+        if not campaign_ok(payment, titles):
             continue
         gift = sponsorship_from(payment, titles)
         if gift:
             gifts.append(gift)
         else:
-            print("Skipped", title or kind)
-            print("Fields:", ", ".join(key_paths(payment)))
+            print("Skipped a completed sponsorship. The date or the name was missing.")
     gifts.sort(key=lambda item: (item["date"], item["kind"], item["created"], item["paymentId"]))
     seen = set()
     for gift in gifts:
