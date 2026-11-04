@@ -497,7 +497,9 @@
             sponsor.target = "_blank";
             sponsor.rel = "noopener noreferrer";
             sponsor.textContent = "Sponsor this event";
-            var shareText = [item.summary, dateLine, timeLine, where].join("\n");
+            var shareText = [item.summary, dateLine, timeLine, where];
+            if (item.sponsor) shareText.push(item.sponsor);
+            shareText = shareText.join("\n");
             var flyerUrl = "";
             var flyerFile = null;
             var whatsApp = document.createElement("button");
@@ -517,7 +519,14 @@
             calendar.type = "button";
             calendar.className = "btn-share";
             calendar.textContent = "Add to calendar";
-            actions.appendChild(sponsor);
+            if (item.sponsor) {
+              var sponsored = document.createElement("p");
+              sponsored.className = "sponsor-line";
+              sponsored.textContent = item.sponsor;
+              actions.appendChild(sponsored);
+            } else {
+              actions.appendChild(sponsor);
+            }
             actions.appendChild(whatsApp);
             actions.appendChild(download);
             actions.appendChild(share);
@@ -570,6 +579,7 @@
                 "The entrance is in the back, down the stairs.",
                 "https://nmatorah.org",
               ];
+              if (item.sponsor) description.unshift(item.sponsor);
               if (flyerUrl) description.push(flyerUrl);
               var nowStamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
               var ics = [

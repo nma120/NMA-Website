@@ -493,8 +493,17 @@ h3 {
 
 .week-event .event-actions .btn-donate,
 .week-event .event-actions .btn-whatsapp,
-.week-event .event-actions .btn-share {
+.week-event .event-actions .btn-share,
+.week-event .sponsor-line {
   width: 100%;
+}
+
+.sponsor-line {
+  margin: 0;
+  color: var(--navy);
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
 }
 
 .week-event .event-flyer {

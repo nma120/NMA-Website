@@ -40,6 +40,14 @@ def field(body, name):
     return unescape(match.group(1)) if match else ""
 
 
+def sponsor_line(description):
+    for line in description.splitlines():
+        text = line.strip().rstrip(".")
+        if text.lower().startswith("sponsored by"):
+            return text
+    return ""
+
+
 def attachment(body):
     match = re.search(r"^ATTACH((?:;[^:\n]*)?):(.*)$", body, re.M)
     if not match:
@@ -82,6 +90,7 @@ def events_from_ics(text):
                 "location": field(body, "LOCATION"),
                 "filename": filename,
                 "fileId": file_id,
+                "sponsor": sponsor_line(field(body, "DESCRIPTION")),
             }
         )
     found.sort(key=lambda item: item["start"])

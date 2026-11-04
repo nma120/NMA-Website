@@ -16,6 +16,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Record new sponsorships on the calendar
+        env:
+          ZEFFY_API_KEY: ${{ secrets.ZEFFY_API_KEY }}
+          ZEFFY_CAMPAIGN_ID: ${{ secrets.ZEFFY_CAMPAIGN_ID }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: python scripts/apply_sponsorships.py
       - run: python scripts/update_calendar.py
       - name: Save the event list when it changed
         run: |
