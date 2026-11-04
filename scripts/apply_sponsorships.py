@@ -8,6 +8,7 @@ exists keeps its current privacy. The first gift for a date is the one named.
 import json
 import os
 import re
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta
@@ -37,12 +38,18 @@ MONTHS = {
 def request_json(url, method="GET", payload=None, headers=None):
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, method=method)
+    req.add_header("User-Agent", "Mozilla/5.0 (compatible; NMA-Website/1.0; +https://nmatorah.org)")
+    req.add_header("Accept", "application/json")
     for key, value in (headers or {}).items():
         req.add_header(key, value)
     if data is not None:
         req.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(req, timeout=30) as response:
-        return json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", "replace")[:500].replace("\n", " ")
+        raise RuntimeError("Request failed with HTTP " + str(error.code) + ": " + detail) from None
 
 
 def google_token():
@@ -89,7 +96,31 @@ def parse_date(text):
     )
     if match:
         return date(int(match.group(3)), MONTHS[match.group(1).lower()], int(match.group(2)))
+    match = re.search(
+        r"\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june|july|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
+        r"\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b",
+        text,
+        re.I,
+    )
+    if match:
+        month_name = match.group(1).lower()[:3]
+        month = 9 if month_name == "sep" else MONTHS[next(name for name in MONTHS if name.startswith(month_name))]
+        return upcoming(month, int(match.group(2)))
+    match = re.search(r"\b(\d{1,2})/(\d{1,2})\b", text)
+    if match and int(match.group(1)) <= 12:
+        return upcoming(int(match.group(1)), int(match.group(2)))
     return None
+
+
+def upcoming(month, day):
+    today = datetime.now(TIMEZONE).date()
+    try:
+        found = date(today.year, month, day)
+    except ValueError:
+        return None
+    if found < today - timedelta(days=1):
+        return date(today.year + 1, month, day)
+    return found
 
 
 def campaign_text(payment):
@@ -314,16 +345,20 @@ def main():
         print("Sponsorship helper is waiting for the Zeffy key and Google calendar access.")
         return
     token = google_token()
+    found = list(payments(zeffy))
+    print("Payments read:", len(found))
     gifts = []
-    for payment in payments(zeffy):
+    for payment in found:
         status = str(payment.get("status") or "succeeded").lower()
-        if status not in ("succeeded", "success", "paid"):
+        if status not in ("succeeded", "success", "paid", "completed"):
             continue
         if not campaign_ok(payment):
             continue
         gift = sponsorship_from(payment)
         if gift:
             gifts.append(gift)
+        else:
+            print("Skipped a completed sponsorship. The date or the name was missing.")
     gifts.sort(key=lambda item: (item["date"], item["kind"], item["paymentId"]))
     seen = set()
     for gift in gifts:
