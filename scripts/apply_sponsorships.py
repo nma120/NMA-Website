@@ -203,8 +203,20 @@ def sponsorship_from(payment, titles):
     return {"date": evening, "kind": kind, "line": line, "paymentId": str(payment.get("id") or ""), "created": created}
 
 
-def campaign_ok(payment, titles):
-    return bool(gift_kind(payment, titles))
+def key_paths(value, prefix=""):
+    lines = []
+    if isinstance(value, dict):
+        for key in sorted(value):
+            path = prefix + str(key)
+            child = value[key]
+            if isinstance(child, (dict, list)):
+                lines.append(path)
+                lines.extend(key_paths(child, path + "."))
+            else:
+                lines.append(path)
+    elif isinstance(value, list) and value:
+        lines.extend(key_paths(value[0], prefix + "[]."))
+    return lines
 
 
 def paged(token, resource):
@@ -383,13 +395,17 @@ def main():
         status = str(payment.get("status") or "succeeded").lower()
         if status not in ("succeeded", "success", "paid", "completed"):
             continue
-        if not campaign_ok(payment, titles):
+        campaign_id, title, form, blob = campaign_text(payment, titles)
+        kind = gift_kind(payment, titles)
+        if not kind:
+            print("Unmatched", title or campaign_id or "no campaign")
             continue
         gift = sponsorship_from(payment, titles)
         if gift:
             gifts.append(gift)
         else:
-            print("Skipped a completed sponsorship. The date or the name was missing.")
+            print("Skipped", title or kind)
+            print("Fields:", ", ".join(key_paths(payment)))
     gifts.sort(key=lambda item: (item["date"], item["kind"], item["created"], item["paymentId"]))
     seen = set()
     for gift in gifts:
