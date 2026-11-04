@@ -123,21 +123,25 @@ def upcoming(month, day):
     return found
 
 
-def campaign_text(payment):
-    campaign = payment.get("campaign") or {}
-    title = ""
+def campaign_text(payment, titles):
+    raw = payment.get("campaign") or payment.get("campaign_id") or payment.get("campaignId") or ""
     campaign_id = ""
-    if isinstance(campaign, dict):
-        campaign_id = str(campaign.get("id") or "")
-        title = str(campaign.get("title") or campaign.get("name") or "")
+    title = ""
+    if isinstance(raw, dict):
+        campaign_id = str(raw.get("id") or "")
+        title = str(raw.get("title") or raw.get("name") or "")
     else:
-        campaign_id = str(campaign)
-    form = str(payment.get("form") or payment.get("form_name") or payment.get("campaign_name") or "")
+        campaign_id = str(raw)
+    if not title and campaign_id:
+        title = titles.get(campaign_id, "")
+    if not title:
+        title = str(payment.get("campaign_title") or payment.get("campaign_name") or payment.get("form_name") or "")
+    form = str(payment.get("form") or "")
     return campaign_id, title, form, (title + " " + form).lower()
 
 
-def gift_kind(payment):
-    campaign_id, title, form, blob = campaign_text(payment)
+def gift_kind(payment, titles):
+    campaign_id, title, form, blob = campaign_text(payment, titles)
     wanted = os.environ.get("ZEFFY_CAMPAIGN_ID", "").strip()
     if wanted and wanted not in (campaign_id, title, form):
         return ""
@@ -150,8 +154,8 @@ def gift_kind(payment):
     return ""
 
 
-def sponsorship_from(payment):
-    kind = gift_kind(payment)
+def sponsorship_from(payment, titles):
+    kind = gift_kind(payment, titles)
     if kind != "shiur" and kind != "meal":
         return None
     answers = pairs(payment)
@@ -165,39 +169,54 @@ def sponsorship_from(payment):
         if re.search(r"name|sponsor|display", label) and not parse_date(answer):
             name = answer.strip(" .")
     contact = payment.get("contact") or payment.get("buyer") or payment.get("user") or {}
-    if not name and isinstance(contact, dict):
+    if not isinstance(contact, dict):
+        contact = {}
+    if not name:
         name = " ".join(
             part
-            for part in (contact.get("first_name") or contact.get("firstName"), contact.get("last_name") or contact.get("lastName"))
+            for part in (
+                contact.get("first_name") or contact.get("firstName") or payment.get("buyer_first"),
+                contact.get("last_name") or contact.get("lastName") or payment.get("buyer_last"),
+            )
             if part
         ).strip()
         if not name:
             name = str(contact.get("name") or "").strip()
     if not name or evening is None:
         return None
+    tribute = payment.get("tribute") if isinstance(payment.get("tribute"), dict) else {}
+    honored = str(tribute.get("honouree_name") or tribute.get("honoree_name") or tribute.get("name") or "").strip(" .")
+    tribute_type = str(tribute.get("type") or tribute.get("kind") or "").lower()
+    dedication = ""
+    if honored:
+        if honored.lower().startswith("in honor") or honored.lower().startswith("in memory"):
+            dedication = " " + honored
+        elif "memory" in tribute_type:
+            dedication = " in memory of " + honored
+        else:
+            dedication = " in honor of " + honored
     if kind == "meal":
-        line = "Meal sponsored by " + name
+        line = "Meal sponsored by " + name + dedication
     else:
-        line = "Sponsored by " + name
-    return {"date": evening, "kind": kind, "line": line, "paymentId": str(payment.get("id") or "")}
+        line = "Sponsored by " + name + dedication
+    created = str(payment.get("created") or payment.get("created_at") or payment.get("createdAt") or "")
+    return {"date": evening, "kind": kind, "line": line, "paymentId": str(payment.get("id") or ""), "created": created}
 
 
-def campaign_ok(payment):
-    return bool(gift_kind(payment))
+def campaign_ok(payment, titles):
+    return bool(gift_kind(payment, titles))
 
 
-def payments(token):
+def paged(token, resource):
     found = []
     cursor = ""
     while True:
-        query = urllib.parse.urlencode(
-            {"status": "succeeded", "limit": "100", **({"starting_after": cursor} if cursor else {})}
-        )
+        query = urllib.parse.urlencode({"limit": "100", **({"starting_after": cursor} if cursor else {})})
         page = request_json(
-            "https://api.zeffy.com/api/v1/payments?" + query,
-            headers={"Authorization": "Bearer " + token, "Accept": "application/json"},
+            "https://api.zeffy.com/api/v1/" + resource + "?" + query,
+            headers={"Authorization": "Bearer " + token},
         )
-        batch = page.get("data") or page.get("payments") or page.get("results") or []
+        batch = page.get("data") or page.get(resource) or page.get("results") or []
         if isinstance(page, list):
             batch = page
         found.extend(batch)
@@ -205,6 +224,16 @@ def payments(token):
         if not cursor or not page.get("has_more"):
             break
     return found
+
+
+def campaign_titles(token):
+    titles = {}
+    for item in paged(token, "campaigns"):
+        campaign_id = str(item.get("id") or "")
+        title = str(item.get("title") or item.get("name") or "")
+        if campaign_id and title:
+            titles[campaign_id] = title
+    return titles
 
 
 def calendar_headers(token):
@@ -345,23 +374,23 @@ def main():
         print("Sponsorship helper is waiting for the Zeffy key and Google calendar access.")
         return
     token = google_token()
-    found = list(payments(zeffy))
+    titles = campaign_titles(zeffy)
+    found = paged(zeffy, "payments")
+    print("Campaigns read:", len(titles))
     print("Payments read:", len(found))
     gifts = []
     for payment in found:
-        campaign_id, title, form, blob = campaign_text(payment)
-        print("Payment", str(payment.get("status") or ""), gift_kind(payment) or "unmatched", title or form or "no campaign title")
         status = str(payment.get("status") or "succeeded").lower()
         if status not in ("succeeded", "success", "paid", "completed"):
             continue
-        if not campaign_ok(payment):
+        if not campaign_ok(payment, titles):
             continue
-        gift = sponsorship_from(payment)
+        gift = sponsorship_from(payment, titles)
         if gift:
             gifts.append(gift)
         else:
             print("Skipped a completed sponsorship. The date or the name was missing.")
-    gifts.sort(key=lambda item: (item["date"], item["kind"], item["paymentId"]))
+    gifts.sort(key=lambda item: (item["date"], item["kind"], item["created"], item["paymentId"]))
     seen = set()
     for gift in gifts:
         key = (gift["date"], gift["kind"])
