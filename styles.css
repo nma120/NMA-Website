@@ -644,20 +644,43 @@ h3 {
   }
 }
 
-.flyer-grid .flyer-card img {
-  height: 8.5rem;
-  object-fit: cover;
-  object-position: top center;
+.flyer-grid .flyer-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.flyer-grid .recent-flyer {
+  width: 8.75rem;
+  flex: 0 0 8.75rem;
+  margin: 0;
+}
+
+.flyer-grid .recent-flyer img {
+  width: 8.75rem;
+  height: auto;
+  max-width: none;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 10px;
+}
+
+.flyer-grid .recent-flyer figcaption {
+  padding: 0.35rem 0 0;
+  text-align: center;
+  font-size: 0.72rem;
 }
 
 .flyer-grid .flyer-card h3 {
   font-size: 1rem;
-  margin: 0.55rem 0.75rem 0.15rem;
+  margin: 0 0 0.2rem;
 }
 
 .flyer-grid .flyer-card p {
-  margin: 0 0.75rem 0.75rem;
-  font-size: 0.82rem;
+  margin: 0;
+  font-size: 0.85rem;
 }
 
 .address-link {
@@ -782,33 +805,43 @@ a.purpose-card {
   font-size: 1.05rem;
 }
 
+.card-copy {
+  min-width: 0;
+  flex: 1;
+}
+
 .video-card {
   text-decoration: none;
   color: inherit;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.85rem;
 }
 
 .video-card img {
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  width: 100%;
+  width: 8rem;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  object-position: center;
+  flex: none;
   background: var(--navy-deep);
+  border-radius: 8px;
 }
 
 .video-card span {
   display: block;
-  padding: 0 1rem;
+  padding: 0;
 }
 
 .video-title {
-  padding-top: 0.9rem;
   font-weight: 700;
   color: var(--navy);
 }
 
 .video-meta {
-  padding-bottom: 1rem;
+  margin-top: 0.2rem;
   color: var(--muted);
   font-size: 0.85rem;
 }
@@ -1113,24 +1146,16 @@ a.purpose-card {
   }
 
   .video-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 1fr;
   }
 
   .purpose-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .flyer-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
   .photo-grid,
   .footer-grid {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .flyer-grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 }
 

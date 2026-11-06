@@ -81,7 +81,7 @@ def events_from_ics(text):
             continue
         start = parse_when(start_match.group(2).strip(), start_match.group(1) or "")
         end = parse_when(end_match.group(2).strip(), end_match.group(1) or "") if end_match else start
-        if end < now - timedelta(days=1) or start > window_end:
+        if end < now - timedelta(days=120) or start > window_end:
             continue
         summary = field(body, "SUMMARY")
         if not summary or summary.lower() == "busy":
