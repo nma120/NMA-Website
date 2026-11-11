@@ -644,24 +644,28 @@ h3 {
   }
 }
 
+.flyer-grid {
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+
 .flyer-grid .flyer-card {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 0.85rem 1rem;
+  gap: 0.75rem;
+  padding: 1rem 0.85rem 1.15rem;
+  text-align: center;
 }
 
 .flyer-grid .recent-flyer {
-  width: 8.75rem;
-  flex: 0 0 8.75rem;
+  width: min(14rem, 100%);
   margin: 0;
 }
 
 .flyer-grid .recent-flyer img {
-  width: 8.75rem;
+  width: 100%;
   height: auto;
-  max-width: none;
   object-fit: contain;
   object-position: center;
   border-radius: 10px;
@@ -671,6 +675,10 @@ h3 {
   padding: 0.35rem 0 0;
   text-align: center;
   font-size: 0.72rem;
+}
+
+.flyer-grid .card-copy {
+  width: 100%;
 }
 
 .flyer-grid .flyer-card h3 {

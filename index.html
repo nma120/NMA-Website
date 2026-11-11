@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NMA Torah Learning Center</title>
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="styles.css?v=4" />
   </head>
   <body>
     <a class="skip" href="#event">Skip to events this week</a>
@@ -385,7 +385,7 @@
           past.sort(function (a, b) {
             return new Date(b.start) - new Date(a.start);
           });
-          past = past.slice(0, 3);
+          past = past.slice(0, 2);
           box.textContent = "";
           past.forEach(function (item) {
             var start = new Date(item.start);
